@@ -10,7 +10,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 /**
- * Created by changming.xie on 4/1/16.
+ * 订单持久层
  */
 @Repository
 public class OrderRepository {
@@ -30,7 +30,9 @@ public class OrderRepository {
     }
 
     public void updateOrder(Order order) {
+        // 版本号加1
         order.updateVersion();
+        // 更新订单状态
         int effectCount = orderDao.update(order);
 
         if (effectCount < 1) {

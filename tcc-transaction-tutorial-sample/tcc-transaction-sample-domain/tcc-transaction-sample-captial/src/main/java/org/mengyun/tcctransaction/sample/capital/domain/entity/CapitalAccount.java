@@ -15,6 +15,9 @@ public class CapitalAccount {
 
     private long userId;
 
+    /**
+     * 账户余额
+     */
     private BigDecimal balanceAmount;
 
     private BigDecimal transferAmount = BigDecimal.ZERO;
@@ -38,21 +41,26 @@ public class CapitalAccount {
 
     public void transferFrom(BigDecimal amount) {
 
+        // 从余额里面减去此值
         this.balanceAmount = this.balanceAmount.subtract(amount);
 
         if (BigDecimal.ZERO.compareTo(this.balanceAmount) > 0) {
+            System.out.println("资金不足");
             throw new InsufficientBalanceException();
         }
-
+        // 转换余额加上负数
         transferAmount = transferAmount.add(amount.negate());
     }
 
     public void transferTo(BigDecimal amount) {
-        this.balanceAmount = this.balanceAmount.add(amount);
+        // 转换余额
         transferAmount = transferAmount.add(amount);
     }
 
     public void cancelTransfer(BigDecimal amount) {
-        transferTo(amount);
+        this.balanceAmount = this.balanceAmount.add(amount);
+        // 转换余额
+        transferAmount = transferAmount.add(amount);
+
     }
 }

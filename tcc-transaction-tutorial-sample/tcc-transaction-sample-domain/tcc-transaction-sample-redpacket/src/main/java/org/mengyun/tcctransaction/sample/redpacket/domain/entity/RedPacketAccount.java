@@ -41,10 +41,10 @@ public class RedPacketAccount {
     }
 
     public void transferTo(BigDecimal amount) {
-        this.balanceAmount = this.balanceAmount.add(amount);
+
     }
 
     public void cancelTransfer(BigDecimal amount) {
-        transferTo(amount);
+        this.balanceAmount = this.balanceAmount.add(amount);
     }
 }

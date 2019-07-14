@@ -8,11 +8,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Created by twinkle.zhou on 16/11/10.
+ * 商品查询持久层
  */
 @Repository
 public class ProductRepository {
 
+    /**
+     * 商品查询服务
+     */
     @Autowired
     ProductDao productDao;
 

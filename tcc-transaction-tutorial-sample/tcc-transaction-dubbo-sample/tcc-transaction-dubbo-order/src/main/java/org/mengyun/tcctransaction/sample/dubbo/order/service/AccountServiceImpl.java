@@ -8,14 +8,20 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 
 /**
- * Created by twinkle.zhou on 16/11/11.
+ * 账户服务实现类
  */
 @Service("accountService")
 public class AccountServiceImpl {
 
+    /**
+     * 此服务是通过dubbo引用来的
+     */
     @Autowired
     RedPacketAccountService redPacketAccountService;
 
+    /**
+     * 此服务是通过dubbo引用来的
+     */
     @Autowired
     CapitalAccountService capitalAccountService;
 

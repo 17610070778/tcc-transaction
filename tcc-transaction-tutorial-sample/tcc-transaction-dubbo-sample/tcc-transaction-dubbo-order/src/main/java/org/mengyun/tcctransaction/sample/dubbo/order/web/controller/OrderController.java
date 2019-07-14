@@ -22,21 +22,33 @@ import java.security.InvalidParameterException;
 import java.util.List;
 
 /**
- * Created by changming.xie on 4/1/16.
+ * 订单接口
  */
 @Controller
 @RequestMapping("")
 public class OrderController {
 
+    /**
+     * 下订单服务
+     */
     @Autowired
     PlaceOrderServiceImpl placeOrderService;
 
+    /**
+     * 商品持久层
+     */
     @Autowired
     ProductRepository productRepository;
 
+    /**
+     * 商品查询服务，内部注入了dubbo发布的资金服务和红包服务
+     */
     @Autowired
     AccountServiceImpl accountService;
 
+    /**
+     * 订单持久层
+     */
     @Autowired
     OrderServiceImpl orderService;
 
@@ -46,6 +58,12 @@ public class OrderController {
         return mv;
     }
 
+    /**
+     * 根据商店id，查询商品服务
+     * @param userId
+     * @param shopId
+     * @return
+     */
     @RequestMapping(value = "/user/{userId}/shop/{shopId}", method = RequestMethod.GET)
     public ModelAndView getProductsInShop(@PathVariable long userId,
                                           @PathVariable long shopId) {
@@ -60,6 +78,13 @@ public class OrderController {
         return mv;
     }
 
+    /**
+     * 用户购买确认页，会进行查询账务，红包余额
+     * @param userId
+     * @param shopId
+     * @param productId
+     * @return
+     */
     @RequestMapping(value = "/user/{userId}/shop/{shopId}/product/{productId}/confirm", method = RequestMethod.GET)
     public ModelAndView productDetail(@PathVariable long userId,
                                       @PathVariable long shopId,
@@ -67,9 +92,12 @@ public class OrderController {
 
         ModelAndView mv = new ModelAndView("product_detail");
 
+        // 根据用户id查询资金账户余额
         mv.addObject("capitalAmount", accountService.getCapitalAccountByUserId(userId));
+        // 根据用户id查询红包账户余额
         mv.addObject("redPacketAmount", accountService.getRedPacketAccountByUserId(userId));
 
+        // 根据商品id，查询商品
         mv.addObject("product", productRepository.findById(productId));
 
         mv.addObject("userId", userId);
@@ -78,6 +106,14 @@ public class OrderController {
         return mv;
     }
 
+    /**
+     * 下单接口
+     * @param redPacketPayAmount
+     * @param shopId
+     * @param payerUserId
+     * @param productId
+     * @return
+     */
     @RequestMapping(value = "/placeorder", method = RequestMethod.POST)
     public RedirectView placeOrder(@RequestParam String redPacketPayAmount,
                                    @RequestParam long shopId,
@@ -85,6 +121,7 @@ public class OrderController {
                                    @RequestParam long productId) {
 
 
+        // 构建下单请求
         PlaceOrderRequest request = buildRequest(redPacketPayAmount, shopId, payerUserId, productId);
 
         String merchantOrderNo = placeOrderService.placeOrder(request.getPayerUserId(), request.getShopId(),
@@ -117,6 +154,14 @@ public class OrderController {
     }
 
 
+    /**
+     * 构建下单请求
+     * @param redPacketPayAmount
+     * @param shopId
+     * @param payerUserId
+     * @param productId
+     * @return
+     */
     private PlaceOrderRequest buildRequest(String redPacketPayAmount, long shopId, long payerUserId, long productId) {
         BigDecimal redPacketPayAmountInBigDecimal = new BigDecimal(redPacketPayAmount);
         if (redPacketPayAmountInBigDecimal.compareTo(BigDecimal.ZERO) < 0)

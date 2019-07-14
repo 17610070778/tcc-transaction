@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by changming.xie on 4/2/16.
+ * 下单请求实体类
  */
 public class PlaceOrderRequest {
 

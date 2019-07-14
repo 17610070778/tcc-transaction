@@ -17,23 +17,42 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Created by changming.xie on 4/1/16.
+ * 交易订单实现类
  */
 @Service
 public class PlaceOrderServiceImpl {
 
+    /**
+     * 操作商户表
+     */
     @Autowired
     ShopRepository shopRepository;
 
+    /**
+     * 操作订单表
+     */
     @Autowired
     OrderServiceImpl orderService;
 
+    /**
+     * 支付服务实现类，内部引用了来自dubbo发布的资金服务和红包服务
+     */
     @Autowired
     PaymentServiceImpl paymentService;
 
+    /**
+     * 下单
+     * @param payerUserId
+     * @param shopId
+     * @param productQuantities
+     * @param redPacketPayAmount
+     * @return
+     */
     public String placeOrder(long payerUserId, long shopId, List<Pair<Long, Integer>> productQuantities, final BigDecimal redPacketPayAmount) {
+        // 本地库查询商店
         Shop shop = shopRepository.findById(shopId);
 
+        // 本库创建订单
         final Order order = orderService.createOrder(payerUserId, shop.getOwnerUserId(), productQuantities);
 
         Boolean result = false;
@@ -45,6 +64,7 @@ public class PlaceOrderServiceImpl {
 //            Future future1 = executorService.submit(new Runnable() {
 //                @Override
 //                public void run() {
+            // 对外发起支付
                     paymentService.makePayment(order.getMerchantOrderNo(), order, redPacketPayAmount, order.getTotalAmount().subtract(redPacketPayAmount));
 //                }
 //            });

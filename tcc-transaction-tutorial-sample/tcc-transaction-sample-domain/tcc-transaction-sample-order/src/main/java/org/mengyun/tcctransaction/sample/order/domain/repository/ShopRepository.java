@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
- * Created by changming.xie on 4/1/16.
+ * 商店持久层
  */
 @Repository
 public class ShopRepository {

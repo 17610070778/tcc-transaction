@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * Created by changming.xie on 4/1/16.
+ * 订单交易记录请求类
  */
 public class CapitalTradeOrderDto implements Serializable {
 

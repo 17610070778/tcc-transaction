@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Calendar;
 
 /**
- * Created by changming.xie on 4/2/16.
+ * 红包tcc服务
  */
 @Service("redPacketTradeOrderService")
 public class RedPacketTradeOrderServiceImpl implements RedPacketTradeOrderService {
@@ -39,7 +39,7 @@ public class RedPacketTradeOrderServiceImpl implements RedPacketTradeOrderServic
             throw new RuntimeException(e);
         }
 
-        System.out.println("red packet try record called. time seq:" + DateFormatUtils.format(Calendar.getInstance(), "yyyy-MM-dd HH:mm:ss"));
+        System.out.println("调用红包服务，创建交易信息；时间>>>" + DateFormatUtils.format(Calendar.getInstance(), "yyyy-MM-dd HH:mm:ss"));
 
         TradeOrder foundTradeOrder = tradeOrderRepository.findByMerchantOrderNo(tradeOrderDto.getMerchantOrderNo());
 
@@ -54,16 +54,16 @@ public class RedPacketTradeOrderServiceImpl implements RedPacketTradeOrderServic
             );
 
             try {
-
+                // 保存交易记录，  由于这个字段是唯一的merchantOrderNo，所以并发插入会报错，解决幂等
                 tradeOrderRepository.insert(tradeOrder);
-
+                // 查询红包账户
                 RedPacketAccount transferFromAccount = redPacketAccountRepository.findByUserId(tradeOrderDto.getSelfUserId());
-
+                // 冻结预处理资金
                 transferFromAccount.transferFrom(tradeOrderDto.getAmount());
-
+                // 保存红包账户
                 redPacketAccountRepository.save(transferFromAccount);
             } catch (DataIntegrityViolationException e) {
-                //this exception may happen when insert trade order concurrently, if happened, ignore this insert operation.
+                //当同时插入红包交易订单时，可能会发生此异常，如果发生，请忽略此插入操作
             }
         }
 
@@ -79,19 +79,21 @@ public class RedPacketTradeOrderServiceImpl implements RedPacketTradeOrderServic
             throw new RuntimeException(e);
         }
 
-        System.out.println("red packet confirm record called. time seq:" + DateFormatUtils.format(Calendar.getInstance(), "yyyy-MM-dd HH:mm:ss"));
-
+        System.out.println("红包确认接口被调用；时间>>>" + DateFormatUtils.format(Calendar.getInstance(), "yyyy-MM-dd HH:mm:ss"));
+        // 查询红包交易记录
         TradeOrder tradeOrder = tradeOrderRepository.findByMerchantOrderNo(tradeOrderDto.getMerchantOrderNo());
 
-        //check if the trade order status is DRAFT, if yes, return directly, ensure idempotency.
+        //红包交易记录状态不为空，并且为待确认
         if (tradeOrder != null && tradeOrder.getStatus().equals("DRAFT")) {
+            // 修改为确认状态
             tradeOrder.confirm();
+            // 幂等更新
             tradeOrderRepository.update(tradeOrder);
-
+            // 查询红包账户
             RedPacketAccount transferToAccount = redPacketAccountRepository.findByUserId(tradeOrderDto.getOppositeUserId());
-
+            // 红包确认
             transferToAccount.transferTo(tradeOrderDto.getAmount());
-
+            // 保存账户
             redPacketAccountRepository.save(transferToAccount);
         }
     }
@@ -105,19 +107,21 @@ public class RedPacketTradeOrderServiceImpl implements RedPacketTradeOrderServic
             throw new RuntimeException(e);
         }
 
-        System.out.println("red packet cancel record called. time seq:" + DateFormatUtils.format(Calendar.getInstance(), "yyyy-MM-dd HH:mm:ss"));
-
+        System.out.println("红包服务取消服务调用；时间>>>" + DateFormatUtils.format(Calendar.getInstance(), "yyyy-MM-dd HH:mm:ss"));
+        // 查询红包交易记录
         TradeOrder tradeOrder = tradeOrderRepository.findByMerchantOrderNo(tradeOrderDto.getMerchantOrderNo());
 
-        //check if the trade order status is DRAFT, if yes, return directly, ensure idempotency.
+        //红包交易记录状态不为空，并且为待确认
         if (null != tradeOrder && "DRAFT".equals(tradeOrder.getStatus())) {
+            // 修改状态为取消
             tradeOrder.cancel();
+            // 幂等更新
             tradeOrderRepository.update(tradeOrder);
-
+            // 查询红包账户
             RedPacketAccount capitalAccount = redPacketAccountRepository.findByUserId(tradeOrderDto.getSelfUserId());
-
+            // 红包还原
             capitalAccount.cancelTransfer(tradeOrderDto.getAmount());
-
+            // 保存账户
             redPacketAccountRepository.save(capitalAccount);
         }
     }

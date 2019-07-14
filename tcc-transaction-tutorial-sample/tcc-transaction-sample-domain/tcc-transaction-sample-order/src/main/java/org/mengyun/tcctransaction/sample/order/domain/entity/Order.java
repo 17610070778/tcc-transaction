@@ -15,18 +15,33 @@ public class Order implements Serializable {
     private static final long serialVersionUID = -5908730245224893590L;
     private long id;
 
+    /**
+     * 付款人
+     */
     private long payerUserId;
 
+    /**
+     * 领款人
+     */
     private long payeeUserId;
 
+    /**
+     * 红包支付金额
+     */
     private BigDecimal redPacketPayAmount;
 
+    /**
+     * 资金支付金额
+     */
     private BigDecimal capitalPayAmount;
 
     private String status = "DRAFT";
 
     private String merchantOrderNo;
 
+    /**
+     * 解决幂等
+     */
     private long version = 1l;
 
     private List<OrderLine> orderLines = new ArrayList<OrderLine>();
